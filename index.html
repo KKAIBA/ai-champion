@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Champion &mdash; Ask.Learn.Apply.</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+:root{
+  --bg:#F7F6F2;--surface:#FFFFFF;--surface2:#F0EFE9;
+  --border:rgba(0,0,0,0.08);--border-strong:rgba(0,0,0,0.14);
+  --text:#1A1916;--text-muted:#6B6860;--text-hint:#A09E99;
+  --accent:#5F841B;--accent-light:#EEF4E0;--accent-text:#3D5611;
+  --user-bubble:#4A6815;
+  --week1:#FFF4E6;--week1t:#7A3800;--week2:#E8F5E9;--week2t:#1B5E20;
+  --week3:#E3F2FD;--week3t:#0D47A1;--week4:#FCE4EC;--week4t:#880E4F;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center}
+.topbar{width:100%;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.topbar-icon svg{width:17px;height:17px;fill:#fff}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text)}
+.topbar-sub{font-size:11px;color:var(--text-muted)}
+.topbar-badge{margin-left:auto;font-size:11px;font-family:var(--mono);background:var(--accent-light);color:var(--accent-text);padding:4px 10px;border-radius:20px;font-weight:500;white-space:nowrap}
+.layout{display:flex;width:100%;max-width:1100px;flex:1;min-height:0;overflow:hidden}
+.sidebar{width:255px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;min-height:0}
+.sidebar-section-title{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-hint);margin-bottom:6px}
+.week-card{border-radius:9px;padding:9px 11px;margin-bottom:5px;cursor:pointer;transition:opacity 0.15s}
+.week-card:hover{opacity:0.75}
+.w1{background:var(--week1)}.w2{background:var(--week2)}.w3{background:var(--week3)}.w4{background:var(--week4)}
+.week-label{font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:2px}
+.w1 .week-label{color:var(--week1t)}.w2 .week-label{color:var(--week2t)}.w3 .week-label{color:var(--week3t)}.w4 .week-label{color:var(--week4t)}
+.week-title{font-size:13px;font-weight:500;color:var(--text)}
+.week-desc{font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.4}
+.quick-q{font-size:12px;color:var(--accent-text);background:var(--accent-light);padding:7px 10px;border-radius:8px;cursor:pointer;margin-bottom:5px;line-height:1.4;transition:background 0.15s;border:none;width:100%;text-align:left;font-family:var(--font)}
+.quick-q:hover{background:#D4E8A0}
+.chat-area{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}
+#messages{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
+.msg{display:flex;gap:10px;align-items:flex-start;max-width:82%;animation:fadeUp 0.2s ease}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.msg.bot{align-self:flex-start}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;margin-top:2px}
+.bot-av{background:var(--accent);color:#fff}
+.user-av{background:var(--text);color:#fff}
+.bubble{padding:10px 14px;border-radius:15px;font-size:14px;line-height:1.65}
+.msg.bot .bubble{background:var(--surface);color:var(--text);border:1px solid var(--border);border-top-left-radius:4px}
+.msg.user .bubble{background:var(--user-bubble);color:#fff;border-top-right-radius:4px}
+.bubble strong{font-weight:600}
+.typing-dots{display:flex;gap:4px;align-items:center;padding:4px 2px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text-hint);animation:pulse 1.4s infinite}
+.dot:nth-child(2){animation-delay:0.2s}.dot:nth-child(3){animation-delay:0.4s}
+@keyframes pulse{0%,60%,100%{transform:scale(1);opacity:0.5}30%{transform:scale(1.3);opacity:1}}
+.input-area{padding:14px 20px 18px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+.input-row{display:flex;gap:8px;align-items:flex-end;background:var(--surface2);border:1px solid var(--border-strong);border-radius:13px;padding:9px 10px 9px 14px;transition:border-color 0.2s}
+.input-row:focus-within{border-color:var(--accent)}
+#user-input{flex:1;font-family:var(--font);font-size:14px;color:var(--text);background:transparent;border:none;outline:none;resize:none;line-height:1.5;max-height:100px;min-height:20px}
+#user-input::placeholder{color:var(--text-hint)}
+#send-btn{width:32px;height:32px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity 0.2s,transform 0.1s}
+#send-btn:hover{opacity:0.85}
+#send-btn:active{transform:scale(0.93)}
+#send-btn:disabled{opacity:0.35;cursor:not-allowed}
+#send-btn svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hint-text{font-size:11px;color:var(--text-hint);text-align:center;margin-top:7px}
+@media(max-width:680px){.sidebar{display:none}#messages{padding:14px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg></div>
+  <div>
+    <div class="topbar-title">AI Champion &mdash; Ask.Learn.Apply.</div>
+    <div class="topbar-sub">Andrew Ng&rsquo;s &ldquo;AI for Everyone&rdquo; &middot; DeepLearning.AI &middot; Ask about the course or anything AI-related</div>
+  </div>
+  <div class="topbar-badge">By Your AI Champion</div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div>
+      <div class="sidebar-section-title">Course Modules</div>
+      <div class="week-card w1" onclick="askQ('Give me a summary of Week 1: What is AI?')">
+        <div class="week-label">Week 1 &middot; 2 hrs</div>
+        <div class="week-title">What is AI?</div>
+        <div class="week-desc">Machine learning, data, terminology, what AI can and cannot do</div>
+      </div>
+      <div class="week-card w2" onclick="askQ('Give me a summary of Week 2: Building AI Projects')">
+        <div class="week-label">Week 2 &middot; 1 hr</div>
+        <div class="week-title">Building AI Projects</div>
+        <div class="week-desc">ML and data science workflows, selecting and executing projects</div>
+      </div>
+      <div class="week-card w3" onclick="askQ('Give me a summary of Week 3: Building AI in Your Company')">
+        <div class="week-label">Week 3 &middot; 2 hrs</div>
+        <div class="week-title">AI in Your Company</div>
+        <div class="week-desc">AI teams, transformation playbook, strategy, pitfalls</div>
+      </div>
+      <div class="week-card w4" onclick="askQ('Give me a summary of Week 4: AI and Society')">
+        <div class="week-label">Week 4 &middot; 2 hrs</div>
+        <div class="week-title">AI and Society</div>
+        <div class="week-desc">Bias, adversarial attacks, jobs, developing economies</div>
+      </div>
+    </div>
+    <div>
+      <div class="sidebar-section-title">Quick Questions</div>
+      <button class="quick-q" onclick="askQ('What is the difference between AI, machine learning, data science, and deep learning?')">What is AI vs ML vs deep learning?</button>
+      <button class="quick-q" onclick="askQ('What can AI NOT do? What are its limitations?')">What can AI NOT do?</button>
+      <button class="quick-q" onclick="askQ('What is the one-second rule for deciding if AI can do a task?')">The one-second rule for AI</button>
+      <button class="quick-q" onclick="askQ('How do I select a good AI project for my business?')">How do I choose an AI project?</button>
+      <button class="quick-q" onclick="askQ('What are the key steps of a machine learning project?')">Steps of an ML project</button>
+      <button class="quick-q" onclick="askQ('What is the AI Transformation Playbook?')">The AI Transformation Playbook</button>
+      <button class="quick-q" onclick="askQ('What are the five AI pitfalls companies should avoid?')">5 AI pitfalls to avoid</button>
+      <button class="quick-q" onclick="askQ('How does bias occur in AI and how do we fix it?')">Bias in AI &mdash; what and why?</button>
+      <button class="quick-q" onclick="askQ('How is AI affecting jobs?')">AI and jobs</button>
+      <button class="quick-q" onclick="askQ('What makes a company a good AI company?')">What makes a good AI company?</button>
+    </div>
+  </div>
+  <div class="chat-area">
+    <div id="messages">
+      <div class="msg bot">
+        <div class="avatar bot-av">AI</div>
+        <div class="bubble">
+          Hi! I&rsquo;m <strong>AI Champion</strong> &mdash; your team&rsquo;s learning companion, built directly from Andrew Ng&rsquo;s <em>AI for Everyone</em> course transcripts.<br><br>
+          I cover all 4 weeks faithfully &mdash; using Andrew Ng&rsquo;s exact examples like the T-shirt neural network, smart speaker pipeline, self-driving car, and coffee mug inspection. <strong>No jargon. No prior knowledge needed.</strong><br><br>
+          Click a module or quick question in the sidebar, or just ask me anything. What would you like to learn?
+        </div>
+      </div>
+    </div>
+    <div class="input-area">
+      <div class="input-row">
+        <textarea id="user-input" rows="1" placeholder="Ask me about the course or anything AI-related..."></textarea>
+        <button id="send-btn" onclick="sendMessage()" title="Send">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+      <div class="hint-text">AI Champion &mdash; Ask.Learn.Apply. &middot; Built from Andrew Ng&rsquo;s &ldquo;AI for Everyone&rdquo; transcripts &middot; Retail Reply</div>
+    </div>
+  </div>
+</div>
+<script>
+var loading = false;
+
+// ── KNOWLEDGE BASE ── Built directly from Andrew Ng's course transcripts ──
+var KB = [
+
+// WEEK 1 — WHAT IS AI?
+
+{k:["what is ai","define ai","ai mean","welcome to ai","ai for everyone","what is machine learning","rise of ai","narrow intelligence","agi","general intelligence","ani"],
+a:"<strong>Welcome to AI for Everyone!</strong> Here&rsquo;s Andrew Ng&rsquo;s opening framing:<br><br>AI has two separate ideas. Most of today&rsquo;s value comes from <strong>Artificial Narrow Intelligence (ANI)</strong> &mdash; AIs that do one thing well: a smart speaker, a self-driving car, AI for web search. These are &ldquo;one trick ponies,&rdquo; but when you find the right trick, they&rsquo;re incredibly valuable.<br><br>There&rsquo;s also <strong>AGI (Artificial General Intelligence)</strong> &mdash; the goal of AI that can do anything a human can. We are still very far from AGI. Andrew Ng says it may be decades or even hundreds of years away. The rapid progress in ANI has caused people to falsely think AGI is right around the corner &mdash; it isn&rsquo;t.<br><br><em>Ask me: &ldquo;What is machine learning?&rdquo; to go deeper into Week 1.</em>"},
+
+{k:["what is machine learning","supervised learning","a to b mapping","input output","spam filter","speech recognition","machine translation","online advertising","visual inspection","llm","large language model","chatgpt","next word"],
+a:"<strong>Machine Learning (ML)</strong> is the most important tool in AI today. Andrew Ng defines it as: <em>a type of AI that learns A to B, or input-to-output mappings.</em> This is called <strong>supervised learning</strong>.<br><br><strong>Real examples from the course:</strong><br>&bull; Email &rarr; Spam/not spam (spam filter)<br>&bull; Audio &rarr; Text transcript (speech recognition)<br>&bull; English &rarr; Chinese (machine translation)<br>&bull; Ad + user info &rarr; Will you click? (online advertising &mdash; &ldquo;the most lucrative form&rdquo;)<br>&bull; Phone image &rarr; Scratch/no scratch (visual inspection in manufacturing)<br>&bull; Photo &rarr; Position of other cars (self-driving car)<br><br><strong>Large Language Models (ChatGPT)</strong> also use supervised learning &mdash; trained to predict the next word from billions of words of text.<br><br><em>Ask me: &ldquo;What is data?&rdquo; or &ldquo;What is the difference between AI, ML and deep learning?&rdquo;</em>"},
+
+{k:["what is data","data important","dataset","training data","structured data","unstructured data","labeled data","how to get data","acquire data","manual labeling","data messy","garbage in","misuse of data","data strategy"],
+a:"<strong>What is data?</strong> Andrew Ng says data is often unique to your business. A dataset is like an Excel spreadsheet where you define what is A (input) and what is B (output) &mdash; and that choice is yours to make based on your business need.<br><br><strong>Types of data:</strong><br>&bull; <strong>Structured data</strong> &mdash; spreadsheets and tables (sales records, CRM data). Supervised learning works well here.<br>&bull; <strong>Unstructured data</strong> &mdash; images, audio, text, video. Deep learning excels here.<br><br><strong>How to get data:</strong><br>&bull; Manual labeling (you or someone labels each example)<br>&bull; Observing user or machine behaviour (e.g. did they buy? did the machine fail?)<br>&bull; Downloading from the internet (check the license)<br><br><strong>Two common data mistakes Andrew Ng warns against:</strong><br>&bull; Spending 3 years building a perfect dataset before showing AI &mdash; instead, start early and let AI guide what data you need<br>&bull; Assuming lots of data automatically equals value &mdash; bad data means garbage in, garbage out<br><br><em>Ask me: &ldquo;What is AI vs ML vs deep learning?&rdquo;</em>"},
+
+{k:["difference between ai","ai vs ml","ml vs ai","data science","deep learning","neural network","terminology","ai terminology","what is deep learning","what is data science"],
+a:"<strong>Andrew Ng&rsquo;s AI Terminology explained:</strong><br><br>&bull; <strong>AI</strong> &mdash; the broad umbrella: making computers behave intelligently<br>&bull; <strong>Machine Learning</strong> &mdash; the biggest subset of AI. Software that learns A&rarr;B mappings from data. A running ML system outputs B given A automatically 24/7.<br>&bull; <strong>Deep Learning / Neural Networks</strong> &mdash; the most powerful subset of ML. &ldquo;Neural network&rdquo; and &ldquo;deep learning&rdquo; are used almost interchangeably today.<br>&bull; <strong>Data Science</strong> &mdash; extracting knowledge and insights from data. Output is often a slide deck or PowerPoint for executives to take business action.<br><br><strong>How they fit:</strong> AI &gt; Machine Learning &gt; Deep Learning. Data Science cuts across all of them.<br><br>Andrew Ng&rsquo;s example: In online advertising, the AI that shows you ads is <em>machine learning</em> (running 24/7). Analysing which industries aren&rsquo;t buying ads to send salespeople there is <em>data science</em> (produces a recommendation).<br><br><em>Ask me: &ldquo;What makes a company a good AI company?&rdquo;</em>"},
+
+{k:["what makes ai company","ai first company","good at ai","what makes a company","makes a good ai","good ai company","internet company","ab testing","strategic data","data warehouse","automation opportunities","virtuous cycle"],
+a:"<strong>What makes a company an AI company?</strong> Andrew Ng uses a brilliant analogy:<br><br>A shopping mall with a website is NOT an internet company. An internet company does what the internet makes possible: rapid A/B testing, short iteration cycles, pushing decisions to engineers not just the CEO.<br><br>Similarly, a company using a few neural networks is NOT an AI company. A true AI company does what AI makes possible:<br><br>&bull; <strong>Strategic data acquisition</strong> &mdash; some large companies launch free products just to collect data they can monetise elsewhere<br>&bull; <strong>Unified data warehouse</strong> &mdash; if you have 50 different databases under 50 VPs, it&rsquo;s impossible to connect the dots<br>&bull; <strong>Spotting automation opportunities</strong> &mdash; inserting A&rarr;B mappings to replace manual tasks<br>&bull; <strong>New AI roles</strong> &mdash; ML Engineers, AI Product Managers, Data Engineers<br><br><em>Ask me: &ldquo;What is the AI Transformation Playbook?&rdquo;</em>"},
+
+{k:["one second rule","what ai can do","ai can","feasible","simple concept","lots of data","can ai","practical rule","imperfect rule"],
+a:"<strong>Andrew Ng&rsquo;s one-second rule:</strong> <em>&ldquo;Pretty much anything you could do with one second of thought, we can probably now or soon automate using supervised learning.&rdquo;</em><br><br>This is an imperfect but useful rule of thumb. Examples that pass the test:<br>&bull; Is there a car in this image? (less than a second)<br>&bull; Is this phone scratched? (less than a second)<br>&bull; Is this email spam? (less than a second)<br>&bull; What did they just say? (a few seconds of thought)<br><br>Two conditions that make ML more likely to succeed:<br>1. <strong>Simple concept</strong> &mdash; something that takes very little mental effort<br>2. <strong>Lots of data</strong> &mdash; both the input A and output B you want<br><br>Stock market prediction <em>fails</em> this test &mdash; past prices alone are not predictive of future prices, which is why ML cannot do this accurately.<br><br><em>Ask me: &ldquo;What can AI NOT do?&rdquo; for the limits.</em>"},
+
+{k:["what ai cannot do","cannot do","limitations of ai","ai not good","ai unable","what can ai not","ai cannot","ai limits","100 percent","100%","stock market","new types of data","generalise","generalize"],
+a:"<strong>What AI cannot do &mdash; Andrew Ng&rsquo;s examples:</strong><br><br>&bull; <strong>Predict the stock market</strong> from historical prices alone &mdash; future prices are too random<br>&bull; <strong>Understand human gestures</strong> at the accuracy needed for self-driving cars &mdash; the variety is too vast and the stakes too high<br>&bull; <strong>Diagnose pneumonia from 10 images and a textbook</strong> &mdash; AI needs lots of labelled data; a human doctor can learn from very few<br>&bull; <strong>Generalise to new types of data</strong> &mdash; an AI trained on high-quality X-rays from one hospital performs poorly on differently-taken X-rays at another hospital<br><br>Andrew Ng&rsquo;s key insight: <em>AI is much weaker than humans at adapting to new situations.</em> A human doctor adapts easily; an AI system doesn&rsquo;t.<br><br>Also: <strong>do not expect 100% accuracy.</strong> Reasons it may fail: technology limits, insufficient data, mislabelled data, ambiguous cases.<br><br><em>Ask me: &ldquo;What is the one-second rule?&rdquo; to understand when AI does work.</em>"},
+
+{k:["neural network","deep learning explain","how does deep learning work","artificial neuron","demand prediction","t-shirt","lego","layers","face recognition","pixel"],
+a:"<strong>Neural networks explained (Andrew Ng&rsquo;s T-shirt example):</strong><br><br>Imagine you sell T-shirts and want to predict demand based on price. The simplest neural network has one artificial neuron: price goes in, estimated demand comes out. That&rsquo;s it.<br><br>With more inputs &mdash; price, shipping cost, marketing spend, material quality &mdash; you add neurons. One estimates <em>affordability</em> (price + shipping). Another estimates <em>awareness</em> (marketing). Another estimates <em>perceived quality</em>. A final neuron combines these to output demand.<br><br>The magic: <strong>you only give it A (inputs) and B (output demand). It figures out what the middle neurons should compute all by itself.</strong> Like stacking Lego bricks &mdash; simple pieces combine into something incredibly powerful.<br><br>For face recognition, the input A is millions of pixel brightness values. Early neurons learn to detect edges, then facial features, then faces &mdash; all automatically.<br><br><em>Ask me: &ldquo;Give me a summary of Week 2&rdquo; when ready for AI projects.</em>"},
+
+// WEEK 2 — BUILDING AI PROJECTS
+
+{k:["week 1 summary","summary of week 1","what is ai week","module 1","week one"],
+a:"<strong>Week 1 Summary &mdash; What is AI?</strong> (Andrew Ng)<br><br>&bull; The rise of AI is largely driven by <strong>supervised learning</strong>: learning A&rarr;B mappings from data<br>&bull; ANI (narrow AI) is creating huge value today; AGI is decades away at minimum<br>&bull; <strong>Data types:</strong> structured (spreadsheets) and unstructured (images, audio, text)<br>&bull; <strong>AI vs ML vs Deep Learning vs Data Science</strong> &mdash; each has a distinct role<br>&bull; What makes an AI company: strategic data, unified warehouse, automation mindset<br>&bull; <strong>One-second rule:</strong> if a human can do it in under a second of thought, AI can probably learn it<br>&bull; AI cannot: predict stock markets, handle truly new situations, learn from tiny datasets like humans can<br>&bull; Neural networks: give them A and B &mdash; they figure out the middle themselves<br><br><em>Click Week 2 in the sidebar or ask: &ldquo;What are the steps of an ML project?&rdquo;</em>"},
+
+{k:["steps of machine learning","ml project workflow","workflow of a machine learning","collect data train","deploy model","speech recognition workflow","self driving workflow","key steps of a machine","steps of a machine","iterate","three steps ml"],
+a:"<strong>The 3 steps of a Machine Learning project</strong> (Andrew Ng):<br><br><strong>Step 1: Collect data</strong> &mdash; Define your A&rarr;B mapping. Gather examples. For speech recognition: record people saying &ldquo;Alexa&rdquo; and other words. For self-driving: take photos and draw rectangles around cars.<br><br><strong>Step 2: Train the model</strong> &mdash; Feed data to a learning algorithm. <em>The first attempt almost never works well.</em> You must iterate many times until performance is good enough.<br><br><strong>Step 3: Deploy the model</strong> &mdash; Ship the AI software. Andrew Ng&rsquo;s real example: speech trained on American accents shipped to the UK &mdash; British-accented speakers weren&rsquo;t recognised well. You collect new data and update the model.<br><br><strong>Key insight:</strong> This is a cycle, not a straight line. Expect to loop back to step 1 multiple times. Real AI development is iterative.<br><br><em>Ask me: &ldquo;What are the steps of a data science project?&rdquo;</em>"},
+
+{k:["data science project","workflow data science","sales funnel","optimize","actionable insights","analyze data","hypotheses","manufacturing line","coffee mug factory","yield"],
+a:"<strong>The Data Science project workflow</strong> (Andrew Ng):<br><br>Unlike ML, data science produces <em>actionable insights</em> &mdash; a slide deck or recommendations for executives, not a running software system.<br><br><strong>Key steps:</strong><br>1. <strong>Collect data</strong><br>2. <strong>Analyse data</strong> &mdash; iterate many times to get insights<br>3. <strong>Suggest hypotheses and actions</strong> &mdash; e.g. overseas customers abandon checkout because of shipping costs shown separately<br>4. <strong>Deploy changes, get new data, reanalyse periodically</strong><br><br>Andrew Ng&rsquo;s two examples:<br>&bull; <strong>E-commerce sales funnel:</strong> Why do people visit but not check out? Maybe siesta-time in some countries reduces sales &mdash; spend less on ads then.<br>&bull; <strong>Coffee mug factory:</strong> Why do mugs crack? Data shows low humidity + high kiln temperature = cracks. Adjust accordingly.<br><br><em>Ask me: &ldquo;How does AI affect different job functions?&rdquo;</em>"},
+
+{k:["job function","every job","sales","recruiting","marketing","agriculture","manufacturing","data transforming","lead prioritization","resume screening","precision agriculture","crop","weed"],
+a:"<strong>How AI affects every job function</strong> (Andrew Ng&rsquo;s Week 2 examples):<br><br>&bull; <strong>Sales:</strong> ML prioritises leads &mdash; call the CEO of a large company before the intern at a small one<br>&bull; <strong>Manufacturing:</strong> ML-based visual inspection &mdash; camera detects scratches/dents on coffee mugs automatically, reducing labour costs<br>&bull; <strong>Recruiting:</strong> Data science optimises the recruiting funnel; ML is starting to screen resumes (raises fairness questions)<br>&bull; <strong>Marketing:</strong> A/B testing for website buttons; personalised product recommendations drive a large % of e-commerce sales<br>&bull; <strong>Agriculture:</strong> Precision agriculture &mdash; a machine takes a photo of crops and sprays weed-killer <em>only</em> on the weeds, not the crops. Increases yield while protecting the environment.<br><br>Andrew Ng: <em>&ldquo;It seems like there&rsquo;s a lot of different things you could do with AI. But how do you actually select a promising project?&rdquo;</em><br><br><em>Ask me: &ldquo;How do I choose an AI project?&rdquo;</em>"},
+
+{k:["how to choose ai project","select ai project","brainstorm ai","how do i select","select a good ai","good ai project for","cross functional","valuable feasible","intersection","automating tasks not jobs","radiologist tasks","call center","pain points","main drivers"],
+a:"<strong>How to choose an AI project</strong> (Andrew Ng&rsquo;s framework):<br><br>First, Andrew Ng says: <em>&ldquo;Think about automating tasks, not automating jobs.&rdquo;</em><br><br>A radiologist does many things: reads X-rays, consults doctors, mentors juniors, sees patients. AI might assist with <em>reading X-rays</em> &mdash; that&rsquo;s the task, not the whole job.<br><br><strong>The brainstorming framework:</strong><br>&bull; Draw two circles: what AI can do &amp; what is valuable for your business<br>&bull; Select projects at the <strong>intersection</strong><br>&bull; Use a <strong>cross-functional team</strong>: AI experts + domain/business experts together<br><br><strong>Three brainstorming questions:</strong><br>1. What tasks (not jobs) could be automated?<br>2. What are the main <em>drivers of business value</em>?<br>3. What are the main <em>pain points</em> in your business?<br><br>Andrew Ng: <em>&ldquo;You can make progress even without big data.&rdquo;</em> Sometimes 100 or even 10 images is enough to start.<br><br><em>Ask me: &ldquo;How do I do due diligence on an AI project?&rdquo;</em>"},
+
+{k:["due diligence","technical diligence","business diligence","ethical diligence","feasible valuable","build or buy","outsource","dont sprint in front of a train","industry standard","timeline estimate","how long ai project"],
+a:"<strong>Due diligence on AI projects</strong> (Andrew Ng):<br><br><strong>Technical diligence</strong> &mdash; Can AI actually do this?<br>&bull; Can it meet the desired accuracy level?<br>&bull; How much data is needed?<br>&bull; What is the engineering timeline?<br><br><strong>Business diligence</strong> &mdash; Is it worth building?<br>&bull; Does it lower costs, increase revenue, or create a new business?<br>&bull; Build a spreadsheet financial model to estimate ROI before committing months of effort<br><br><strong>Ethical diligence</strong> &mdash; Does it make society better off? Andrew Ng explicitly adds this as a third type.<br><br><strong>Build vs Buy:</strong> Andrew Ng&rsquo;s memorable phrase &mdash; <em>&ldquo;Don&rsquo;t sprint in front of a train.&rdquo;</em> If an industry-standard solution is coming, don&rsquo;t try to outrun it. Build only what gives you a unique defensible advantage. Buy or use APIs for everything else.<br><br>Data science projects are more commonly done in-house because they require deep business knowledge.<br><br><em>Ask me: &ldquo;How do I work with an AI team?&rdquo;</em>"},
+
+{k:["working with ai team","acceptance criteria","test set","training set","95 percent","99 percent","performance","accuracy","mislabeled","ambiguous","do not expect 100"],
+a:"<strong>Working with an AI team</strong> (Andrew Ng):<br><br><strong>Specify an acceptance criterion</strong> &mdash; e.g. &ldquo;detect defects in coffee mugs with at least 95% accuracy.&rdquo; Note it&rsquo;s statistical, not perfect.<br><br><strong>AI teams use two datasets:</strong><br>&bull; <strong>Training set</strong> &mdash; examples with labels the AI learns from<br>&bull; <strong>Test set</strong> &mdash; separate examples to measure performance. If on 3 test images the AI gets 2 right, that&rsquo;s 66.7% accuracy. You may also hear about a &ldquo;dev&rdquo; or &ldquo;validation&rdquo; set &mdash; a second test set for technical reasons.<br><br><strong>Why 100% accuracy is unrealistic:</strong><br>&bull; Technology limitations for some problems<br>&bull; Insufficient training data<br>&bull; Mislabelled data (a green mug wrongly labelled as defective)<br>&bull; Ambiguous cases (a tiny scratch &mdash; experts might disagree)<br><br>Andrew Ng: <em>&ldquo;A lot of AI systems are incredibly valuable even without achieving 100% accuracy.&rdquo;</em><br><br><em>Ask me: &ldquo;Give me a summary of Week 2.&rdquo;</em>"},
+
+{k:["week 2 summary","summary of week 2","building ai projects","module 2","week two"],
+a:"<strong>Week 2 Summary &mdash; Building AI Projects</strong> (Andrew Ng)<br><br>&bull; <strong>ML project steps:</strong> Collect data &rarr; Train model &rarr; Deploy &amp; monitor (a cycle, not a straight line)<br>&bull; <strong>Data science steps:</strong> Collect &rarr; Analyse &rarr; Suggest hypotheses/actions &rarr; Reanalyse periodically<br>&bull; AI is transforming every job: sales, recruiting, marketing, manufacturing, agriculture<br>&bull; <strong>Project selection:</strong> target the intersection of what AI can do and what is valuable for your business; think tasks not jobs<br>&bull; <strong>Due diligence:</strong> technical (can AI do it?), business (is it worth it?), ethical (is it right?)<br>&bull; <strong>Build vs Buy:</strong> Build only your unique differentiator; don&rsquo;t sprint in front of a train<br>&bull; <strong>Working with AI teams:</strong> set acceptance criteria statistically, provide training and test sets, don&rsquo;t expect 100% accuracy<br><br><em>Click Week 3 in the sidebar to continue.</em>"},
+
+// WEEK 3 — AI IN YOUR COMPANY
+
+{k:["smart speaker","hey device","tell me a joke","trigger word","wake word","speech recognition","intent recognition","execution","four step pipeline","alexa","ai pipeline","four steps"],
+a:"<strong>Case Study: Smart Speaker</strong> (Andrew Ng&rsquo;s Week 3 example)<br><br>When you say <em>&ldquo;Hey device, tell me a joke&rdquo;</em> &mdash; four steps happen:<br><br><strong>Step 1: Trigger word detection</strong> &mdash; A small ML model listens 24/7 for &ldquo;Hey device.&rdquo; Outputs 0 or 1.<br><strong>Step 2: Speech recognition</strong> &mdash; Takes the audio after the wake word and maps it to text: &ldquo;tell me a joke.&rdquo;<br><strong>Step 3: Intent recognition</strong> &mdash; Takes the text and figures out which of the commands (tell joke, set timer, play music, check weather, make call) the user wants.<br><strong>Step 4: Execution</strong> &mdash; A software engineer has written code to randomly select and play a joke.<br><br>This is an <strong>AI pipeline</strong>: multiple AI components each doing A&rarr;B, chained together. It&rsquo;s not unusual to have four different teams, each responsible for one component.<br><br>Andrew Ng&rsquo;s favourite joke: <em>&ldquo;Why are there so many shocking results in AI? Because AI is the new electricity!&rdquo;</em><br><br><em>Ask me: &ldquo;Tell me about the self-driving car case study.&rdquo;</em>"},
+
+{k:["self driving","self-driving car","autonomous car","car detection","pedestrian detection","motion planning","steering","lidar","radar","gps","trajectory","lane marking","traffic light"],
+a:"<strong>Case Study: Self-Driving Car</strong> (Andrew Ng&rsquo;s Week 3 example)<br><br>A self-driving car is a complex AI pipeline with many components:<br><br>&bull; <strong>Car detection</strong> &mdash; ML takes photos + radar/lidar &rarr; outputs positions of other cars (all around, not just front)<br>&bull; <strong>Pedestrian detection</strong> &mdash; Similar sensors &rarr; positions of pedestrians<br>&bull; <strong>Trajectory prediction</strong> &mdash; Where will those cars and pedestrians go in the next few seconds?<br>&bull; <strong>Lane marking detection</strong> &mdash; Where are the road lanes?<br>&bull; <strong>Traffic light recognition</strong> &mdash; Red, yellow, or green?<br>&bull; <strong>Obstacle detection</strong> &mdash; Traffic cones, geese, unexpected objects<br>&bull; <strong>Motion planning</strong> &mdash; Plans the path and speed (e.g. veer left to overtake a parked car)<br>&bull; <strong>Control</strong> &mdash; Translates the plan into steering angle, acceleration, and braking<br><br>On a large team, a separate team or small group works on each component. Building a self-driving car is assembling all of these pieces.<br><br><em>Ask me: &ldquo;What are the roles in an AI team?&rdquo;</em>"},
+
+{k:["roles in ai team","ai team roles","machine learning engineer","data scientist","data engineer","software engineer","ml researcher","ai product manager","job titles","team structure","100 engineers"],
+a:"<strong>Roles in a large AI team</strong> (Andrew Ng):<br><br>&bull; <strong>Software Engineers</strong> &mdash; Often 50%+ of the team. Write the code to execute commands, ensure reliability (e.g. the joke-telling code, the timer code in a smart speaker).<br>&bull; <strong>Machine Learning Engineers</strong> &mdash; Build and train the A&rarr;B ML models. Gather data, train neural networks, iterate to improve accuracy.<br>&bull; <strong>ML Researchers</strong> &mdash; Extend the state of the art. Some publish papers; others do internal research. In between: <em>Applied ML Scientists</em> who adapt cutting-edge research to real products.<br>&bull; <strong>Data Scientists</strong> &mdash; Examine data, provide insights, make presentations to executives to drive business decisions. Role is still evolving.<br>&bull; <strong>Data Engineers</strong> &mdash; Manage data at scale. A self-driving car generates <em>multiple gigabytes per minute</em> &mdash; that&rsquo;s like multiple full-length movies every minute. Data engineers keep it accessible and cost-effective.<br>&bull; <strong>AI Product Managers</strong> &mdash; Decide what to build. Must understand what&rsquo;s feasible and valuable given what AI can and cannot do.<br><br>Andrew Ng: <em>&ldquo;You can get started with just one ML engineer or data scientist.&rdquo;</em><br><br><em>Ask me: &ldquo;What is the AI Transformation Playbook?&rdquo;</em>"},
+
+{k:["ai transformation playbook","five steps","five step","transformation playbook","step one pilot","step two build team","step three training","step four strategy","step five communications","become good at ai","google brain","baidu"],
+a:"<strong>The AI Transformation Playbook &mdash; 5 Steps</strong> (Andrew Ng)<br><br>Andrew Ng developed this from his experience leading Google Brain and Baidu&rsquo;s AI group:<br><br><strong>Step 1: Execute pilot projects to gain momentum</strong><br>Start small. Pick projects likely to succeed &mdash; not necessarily the most valuable. Andrew Ng&rsquo;s first Google Brain project was improving speech recognition (not the most valuable thing for Google), but it built credibility and got the flywheel turning. Aim for traction within 6&ndash;12 months. Can be outsourced initially.<br><br><strong>Step 2: Build an in-house AI team</strong><br>Centralise AI talent rather than putting one ML engineer in each business unit. A centralised team sets consistent standards, builds company-wide platforms, and can be &ldquo;matrixed&rdquo; into business units. Fund it from the CEO level initially, not from business units.<br><br><strong>Step 3: Provide broad AI training</strong><br>&bull; Executives/senior leaders: ~4 hours &mdash; AI strategy, resource allocation<br>&bull; Division leaders: ~12 hours &mdash; technical &amp; business diligence, project tracking<br>&bull; Engineers: ~100 hours &mdash; building and shipping AI software<br><br><strong>Step 4: Develop an AI strategy</strong><br>Do this <em>after</em> steps 1&ndash;3, not before. Companies that set strategy first often produce academic strategies that aren&rsquo;t grounded in reality.<br><br><strong>Step 5: Internal and external communications</strong><br>Investor relations, government relations (especially in regulated sectors like healthcare), consumer education, talent recruitment messaging, internal reassurance.<br><br><em>Ask me: &ldquo;What are the five AI pitfalls to avoid?&rdquo;</em>"},
+
+{k:["ai strategy","virtuous cycle","data strategy","unified data warehouse","network effect","platform advantage","blue river","john deere","agriculture ai","defensible business","low cost high value","strategic data acquisition"],
+a:"<strong>AI Strategy &mdash; Step 4 of the Playbook</strong> (Andrew Ng)<br><br><strong>The Virtuous Cycle of AI:</strong> Better product &rarr; more users &rarr; more data &rarr; even better product. This is why web search is defensible. Andrew Ng&rsquo;s example:<br><br><strong>Blue River Technology</strong> (acquired by John Deere for $300M+): Two Stanford students started by taking photos of crops on farms themselves. Built a basic product. Farmers used it. Machine naturally collected more data on crops/weeds. Better data &rarr; better product &rarr; more farmers &rarr; more data. After several years, they had more photos of cabbage heads in agricultural fields than even large tech companies &mdash; making their business very defensible.<br><br><strong>Key advice:</strong><br>&bull; <strong>Don&rsquo;t try to compete with large tech companies on AI in general.</strong> Specialise AI for your vertical.<br>&bull; Build a unified data warehouse &mdash; if data is split across 50 VPs, engineers can&rsquo;t connect the dots<br>&bull; Launch a virtuous cycle in your vertical before an incumbent does<br><br><em>Ask me: &ldquo;What are the five AI pitfalls companies should avoid?&rdquo;</em>"},
+
+{k:["five pitfalls","ai pitfalls","dont expect ai","dont hire two","dont expect to work first","dont expect traditional planning","dont think you need superstar","common mistakes ai","pitfall","avoid"],
+a:"<strong>5 AI Pitfalls to Avoid</strong> (Andrew Ng&rsquo;s Week 3 warnings):<br><br><strong>1. Don&rsquo;t expect AI to solve everything.</strong> Be realistic about what AI can and cannot do given technology, data, and engineering resource limits. Use technical and business diligence.<br><br><strong>2. Don&rsquo;t hire 2&ndash;3 ML engineers and expect them alone to find all the use cases.</strong> ML engineers are scarce. Pair them with business talent in cross-functional teams to find the best projects.<br><br><strong>3. Don&rsquo;t expect the AI project to work the first time.</strong> AI development is iterative. Plan for multiple attempts. Your second project will be better than your first.<br><br><strong>4. Don&rsquo;t apply traditional planning processes without change.</strong> Work with AI teams to set timeline estimates, milestones, and KPIs that make sense for AI projects &mdash; these are different from non-AI projects.<br><br><strong>5. Don&rsquo;t think you need superstar AI engineers before you can do anything.</strong> Many engineers who learned primarily from online courses are doing great work. Start building with the team you have.<br><br><em>Ask me: &ldquo;What are the first steps I can take right now?&rdquo;</em>"},
+
+{k:["first steps","take first step","get started ai","concrete steps","reading group","brainstorm projects","hire ml","appoint ai leader","chief ai officer","caio","discuss with ceo","start now","initial steps"],
+a:"<strong>Concrete first steps to start with AI</strong> (Andrew Ng):<br><br>&bull; <strong>Don&rsquo;t go it alone</strong> &mdash; find friends in your company or outside work to learn about AI together. Ask them to take this course or start a reading group.<br>&bull; <strong>Start brainstorming projects</strong> &mdash; no project is too small. Better to start small and succeed than start big and fail. You and a friend who&rsquo;ve taken an ML course may have enough to get going.<br>&bull; <strong>In a company:</strong> hire a few ML or data science people, and provide in-house training to build internal talent.<br>&bull; <strong>When ready to go bigger:</strong> appoint an AI leader &mdash; VP of AI, Chief AI Officer (CAIO) &mdash; but you don&rsquo;t need a very senior leader before hiring a few people to start.<br>&bull; <strong>Talk to your CEO or Board</strong> about the possibility of an AI transformation. The key question: <em>Will your company be much more valuable and effective if it was great at AI?</em><br><br>Andrew Ng: <em>&ldquo;By taking this course, you&rsquo;ve already taken a great first step.&rdquo;</em>"},
+
+{k:["week 3 summary","summary of week 3","ai in your company","module 3","week three"],
+a:"<strong>Week 3 Summary &mdash; Building AI in Your Company</strong> (Andrew Ng)<br><br>&bull; <strong>Smart speaker case study:</strong> 4-step AI pipeline (trigger word &rarr; speech recognition &rarr; intent recognition &rarr; execution)<br>&bull; <strong>Self-driving car case study:</strong> Many AI components working together; teams for each<br>&bull; <strong>AI team roles:</strong> Software engineers, ML engineers, ML researchers, data scientists, data engineers, AI PMs<br>&bull; <strong>AI Transformation Playbook (5 steps):</strong> Pilots &rarr; In-house team &rarr; Broad training &rarr; Strategy &rarr; Communications<br>&bull; <strong>AI strategy:</strong> Use the Virtuous Cycle; specialise for your vertical; unified data warehouse; don&rsquo;t try to out-compete tech giants generally<br>&bull; <strong>5 pitfalls:</strong> Don&rsquo;t expect magic; pair ML with business talent; plan for iteration; adapt planning processes; start with the team you have<br>&bull; <strong>First steps:</strong> Learn together, brainstorm small projects, hire a few people, discuss with leadership<br><br><em>Click Week 4 in the sidebar to continue.</em>"},
+
+// WEEK 4 — AI AND SOCIETY
+
+{k:["realistic view","goldilocks","optimistic pessimistic","ai sentience","superintelligence","agi fear","evil robots","black box","explainability","heat map","xray diagnosis","limitations society"],
+a:"<strong>A Realistic View of AI &mdash; the Goldilocks Rule</strong> (Andrew Ng&rsquo;s Week 4 opening)<br><br>Andrew Ng says we must be <em>neither too optimistic nor too pessimistic</em> about AI &mdash; just like Goldilocks finding porridge that&rsquo;s just right.<br><br><strong>Too optimistic:</strong> Believing superintelligence is around the corner and AI will solve all humanity&rsquo;s problems. <em>&ldquo;I wish it were that easy.&rdquo;</em><br><br><strong>Too pessimistic:</strong> Fearing AI will become sentient and wipe out humanity. Andrew Ng: <em>&ldquo;This is in the realm of science fiction rather than a realistic scenario. Humanity has lots of experience controlling things more powerful than any individual &mdash; like corporations and nation states.&rdquo;</em><br><br><strong>Realistic:</strong> AI is a very powerful tool. It has real harms (bias, unfair outputs) that we can mitigate. It is creating tremendous economic value with a clear path to creating more.<br><br><strong>Explainability is hard:</strong> Many high-performing AI systems are black boxes. There is research on making AI explain itself (e.g. heat maps showing what part of an X-ray the AI is looking at), but we need much better tools.<br><br><em>Ask me: &ldquo;How does bias occur in AI?&rdquo;</em>"},
+
+{k:["bias in ai","discrimination","unfair","gender bias","how does bias","bias occur","fix bias","race","ethnic","homemaker","computer programmer","microsoft word embedding","hiring tool","facial recognition","loan approval","stereotype","diverse workforce","audit","transparency"],
+a:"<strong>Bias in AI &mdash; How it happens and how to fix it</strong> (Andrew Ng)<br><br><strong>A remarkable Microsoft finding:</strong> An AI trained on internet text learned that <em>man is to computer programmer as woman is to homemaker</em>. This is because the way these words are used on the internet reflects historical bias &mdash; and the AI learned it faithfully.<br><br><strong>Real-world harms Andrew Ng describes:</strong><br>&bull; A hiring tool that discriminated against women (the company shut it down)<br>&bull; Facial recognition systems less accurate on darker-skinned individuals &mdash; a serious problem if used in criminal investigations<br>&bull; Loan approval systems that quoted higher interest rates to some minority ethnic groups<br>&bull; Image search for &ldquo;CEO&rdquo; showing only men &mdash; discouraging an 8-year-old girl from aspiring to that role<br><br><strong>Technical solutions:</strong><br>&bull; Zero out the numbers in the AI that correspond to bias (reduces it significantly)<br>&bull; Use more diverse and inclusive training data<br>&bull; Subject systems to transparency and auditing &mdash; systematically check accuracy across skin tones, genders, etc.<br>&bull; Build diverse AI teams &mdash; more unique viewpoints catch more problems<br><br>Andrew Ng: <em>&ldquo;We have better ideas for reducing bias in AI than reducing bias in humans.&rdquo;</em><br><br><em>Ask me: &ldquo;What are adversarial attacks on AI?&rdquo;</em>"},
+
+{k:["adversarial attack","fool ai","trick ai","hummingbird","hammer","stop sign","sticker","glasses milla jovovich","banana toaster","perturbation","pixel change","security","arms race","spam fraud"],
+a:"<strong>Adversarial Attacks on AI</strong> (Andrew Ng)<br><br>Modern AI can be fooled by carefully crafted inputs that are imperceptible to humans but drastically change the AI&rsquo;s output.<br><br><strong>Andrew Ng&rsquo;s examples:</strong><br>&bull; A picture of a hummingbird &rarr; tiny pixel changes &rarr; AI says &ldquo;hammer&rdquo;<br>&bull; A picture of a hare &rarr; small perturbation &rarr; AI says &ldquo;desk&rdquo;<br>&bull; A man wearing specially designed glasses &rarr; AI thinks he is actress Milla Jovovich<br>&bull; Stickers placed on a stop sign &rarr; a self-driving car&rsquo;s AI no longer sees it as a stop sign &mdash; catastrophic for safety<br>&bull; A Google research sticker placed near a banana &rarr; AI becomes almost certain it&rsquo;s a toaster<br><br>Why it happens: computers see images as numbers (pixel brightness values) &mdash; very differently from humans. Tiny number changes that humans can&rsquo;t detect fool the AI entirely.<br><br>Andrew Ng compares this to spam vs anti-spam: an ongoing arms race. He is optimistic that because society benefits from strong defences, more resources will be on the defensive side.<br><br><em>Ask me: &ldquo;What are the adverse uses of AI?&rdquo;</em>"},
+
+{k:["adverse use","deepfake","fake video","obama deepfake","democracy","privacy","oppressive","surveillance","fake comments","disinformation","spam versus anti-spam","bad actors"],
+a:"<strong>Adverse uses of AI</strong> (Andrew Ng)<br><br>&bull; <strong>Deepfakes:</strong> AI synthesises video of people doing things they never did. BuzzFeed created a fake Barack Obama video transparently as a demonstration. But if used maliciously against individuals, they could be left defending themselves against fake video evidence.<br>&bull; <strong>Undermining democracy and privacy:</strong> Some governments use AI for oppressive surveillance of citizens. Andrew Ng distinguishes between legitimate public safety uses and oppressive uses.<br>&bull; <strong>Fake comments at scale:</strong> AI can generate fake product reviews or fake political comments much more efficiently than humans writing them. Detecting and removing these is an important challenge.<br><br>Andrew Ng is optimistic: <em>&ldquo;Similar to spam vs anti-spam &mdash; there are far more people motivated to make anti-spam work than there are spammers. The balance of resources means the side of good will prevail, but it will take a lot of work.&rdquo;</em><br><br><em>Ask me: &ldquo;How is AI affecting developing economies?&rdquo;</em>"},
+
+{k:["developing economies","economic ladder","leapfrog","landline mobile","mobile payment","india china","online education","agriculture ladder","textile manufacturing","trampoline","public private partnership","ai for developing"],
+a:"<strong>AI and Developing Economies</strong> (Andrew Ng)<br><br>Many developing economies have climbed an economic ladder: agriculture &rarr; low-end textiles &rarr; components manufacturing &rarr; electronics &rarr; automotive. AI risks knocking out the lower rungs of this ladder through automation.<br><br><strong>But there is a leapfrog opportunity:</strong> Just as many developing economies skipped landlines entirely and went straight to mobile phones, and skipped credit cards to go straight to mobile payments &mdash; AI could allow some economies to leapfrog earlier stages.<br><br><strong>Andrew Ng&rsquo;s advice to developing economies:</strong><br>&bull; Don&rsquo;t try to build your own web search engine &mdash; that was last decade&rsquo;s competition<br>&bull; Focus AI on strengthening your country&rsquo;s existing vertical industries (e.g. if your country is strong in coffee manufacturing, build AI for coffee manufacturing)<br>&bull; Form public-private partnerships &mdash; governments drafting thoughtful regulations while enabling AI adoption<br>&bull; Invest in education &mdash; AI is still immature enough that every nation can participate significantly<br><br><em>Ask me: &ldquo;How is AI affecting jobs?&rdquo;</em>"},
+
+{k:["ai and jobs","jobs displaced","jobs created","how is ai affecting","affecting jobs","ai affecting","400 million","800 million","300 million","mckinsey","goldman sachs","radiologist jobs","reskill","lifelong learning","conditional basic income","what jobs at risk","what jobs safe","new jobs","drone traffic","ai plus radiology"],
+a:"<strong>AI and Jobs</strong> (Andrew Ng)<br><br>Andrew Ng calls AI &ldquo;automation on steroids&rdquo; &mdash; the set of things we can automate has suddenly grown much larger.<br><br><strong>The numbers:</strong><br>&bull; McKinsey estimates 400&ndash;800 million jobs displaced by AI automation by 2030<br>&bull; Goldman Sachs estimates ~300 million jobs by 2033<br>&bull; The same studies estimate jobs <em>created</em> by AI may be even larger<br>&bull; Together, the top 10 occupation groups at risk employ <strong>more than 70%</strong> of global workers<br>&bull; Generative AI has expanded the jobs at risk to include writing and communications tasks (office support, legal work)<br><br><strong>Solutions Andrew Ng discusses:</strong><br>&bull; Conditional basic income &mdash; a safety net that incentivises ongoing learning<br>&bull; Lifelong learning society &mdash; the old model of 4 years of college then coasting for 40 years no longer works<br>&bull; Political solutions &mdash; new job creation incentives, fairness legislation<br><br><strong>Andrew Ng&rsquo;s personal advice:</strong> A radiology resident asked if he should quit and do AI instead. Andrew Ng said: <em>&ldquo;Consider doing AI plus radiology. With your knowledge of radiology AND some AI, you&rsquo;ll be better positioned than most at the intersection.&rdquo;</em><br><br><em>Ask me: &ldquo;Give me a summary of Week 4.&rdquo;</em>"},
+
+{k:["week 4 summary","summary of week 4","ai and society","module 4","week four"],
+a:"<strong>Week 4 Summary &mdash; AI and Society</strong> (Andrew Ng)<br><br>&bull; <strong>Goldilocks rule:</strong> Be neither too optimistic (AGI is not imminent) nor too pessimistic (AI will not wipe out humanity) &mdash; take a realistic view<br>&bull; <strong>Explainability is hard:</strong> Many AI systems are black boxes; research is ongoing<br>&bull; <strong>Bias:</strong> AI learns bias from data (e.g. man:programmer :: woman:homemaker). Solutions: diverse data, auditing, diverse teams, technical fixes<br>&bull; <strong>Adversarial attacks:</strong> Stop sign stickers fool self-driving cars; glasses fool facial recognition; an ongoing arms race<br>&bull; <strong>Adverse uses:</strong> Deepfakes, fake comments, surveillance &mdash; but Andrew Ng is optimistic society will prevail<br>&bull; <strong>Developing economies:</strong> Risk of losing the economic ladder rungs; opportunity to leapfrog; focus AI on existing strengths<br>&bull; <strong>Jobs:</strong> 300&ndash;800M jobs displaced; possibly even more created; AI+your field is better than quitting your field for AI<br><br>Andrew Ng: <em>&ldquo;AI is a superpower. Understanding it allows you to do things that very few people on the planet can.&rdquo;</em>"}
+];
+
+// General AI topics not in course
+var GENERAL_KB = [
+  {k:["chatgpt","openai","gemini","copilot","claude","llm","large language model","generative ai","gen ai","genai"],
+   b:"These are <strong>Generative AI</strong> tools &mdash; a newer wave of AI that generates text, images, and audio from prompts. They are built on Large Language Models (LLMs) trained using supervised learning to predict the next word. Andrew Ng covers this in Week 1 of the course.",
+   c:"Week 1 explains how LLMs work at their core &mdash; predicting the next word using supervised learning. Ask me: <em>&ldquo;What is machine learning?&rdquo;</em> to understand the foundations."},
+  {k:["prompt","prompting","prompt engineering","how to use chatgpt","write a prompt"],
+   b:"<strong>Prompt engineering</strong> is the skill of writing clear, specific instructions to get the best output from AI tools like ChatGPT or Microsoft Copilot. Andrew Ng describes prompts briefly in the context of LLMs in Week 1.",
+   c:"Week 1 covers what AI can and cannot do &mdash; the foundation for writing effective prompts. Ask me: <em>&ldquo;What can AI NOT do?&rdquo;</em>"},
+  {k:["microsoft teams","sharepoint","office 365","microsoft 365","copilot for microsoft","excel ai","word ai"],
+   b:"<strong>Microsoft 365 Copilot</strong> brings generative AI into Teams, Word, Excel, Outlook and PowerPoint. It uses the same LLM technology as ChatGPT. Andrew Ng covers how these tools work in Week 1.",
+   c:"Understanding what these tools can and cannot do is grounded in Week 1. Ask me: <em>&ldquo;What can AI NOT do?&rdquo;</em>"},
+  {k:["retail","ecommerce","e-commerce","customer","inventory","supply chain","demand forecasting","recommendation"],
+   b:"Retail is one of the most active sectors for AI. Common applications include demand forecasting, personalised recommendations, dynamic pricing, and customer churn prediction. Andrew Ng mentions e-commerce sales funnel optimisation as a data science example in Week 2.",
+   c:"Week 2 covers how to identify and evaluate these opportunities. Ask me: <em>&ldquo;How do I choose an AI project?&rdquo;</em>"},
+  {k:["hallucination","wrong answer","ai mistake","make up","confabulate","incorrect answer"],
+   b:"<strong>AI hallucination</strong> is when an AI confidently produces incorrect or made-up information. It happens because AI models predict plausible-sounding responses based on patterns &mdash; they don&rsquo;t truly &lsquo;know&rsquo; facts. Andrew Ng touches on AI limitations and the importance of not trusting AI blindly.",
+   c:"This connects to the explainability problem Andrew Ng covers in Week 4. Ask me: <em>&ldquo;What is a realistic view of AI?&rdquo;</em>"},
+  {k:["change management","adoption","resistance","culture","upskill","reskill","team buy in"],
+   b:"<strong>Change management</strong> is often the hardest part of AI adoption. People need to understand what AI does, trust its outputs, and feel secure. Andrew Ng directly addresses internal communications as Step 5 of the AI Transformation Playbook.",
+   c:"Step 5 of the AI Transformation Playbook covers exactly this. Ask me: <em>&ldquo;What is the AI Transformation Playbook?&rdquo;</em>"},
+  {k:["hello","hi","hey","good morning","good afternoon","thanks","thank you","who are you","what can you do","what are you"],
+   b:"Hello! I&rsquo;m <strong>AI Champion</strong> &mdash; your team&rsquo;s AI learning companion, built directly from Andrew Ng&rsquo;s <em>AI for Everyone</em> course transcripts. I answer your AI questions in plain English, using Andrew Ng&rsquo;s own examples and analogies.",
+   c:"Use the sidebar to jump into a module, or ask me anything from &ldquo;What is machine learning?&rdquo; to &ldquo;Will AI take my job?&rdquo; Nothing is too basic!"}
+];
+
+function getAnswer(query) {
+  var q = query.toLowerCase();
+  var i, j, score, best, bestScore;
+
+  // Farewell detection — respond gracefully before KB matching
+  var farewells = ['close','bye','goodbye','good bye','see you','see ya','exit','quit','done','finish','end','that is all','thats all','thanks bye','thank you bye','cheers','ciao','later','log off','sign off'];
+  for (i = 0; i < farewells.length; i++) {
+    if (q === farewells[i] || q.indexOf(farewells[i]) >= 0) {
+      return 'Thanks for using <strong>AI Champion</strong>! I hope this was helpful on your AI learning journey. &#128075;<br><br>Feel free to come back any time &mdash; whether you have a quick question or want to explore a full course module. Keep learning!';
+    }
+  }
+
+  best = null; bestScore = 0;
+  for (i = 0; i < KB.length; i++) {
+    score = 0;
+    for (j = 0; j < KB[i].k.length; j++) { if (q.indexOf(KB[i].k[j]) >= 0) score++; }
+    if (score > bestScore) { bestScore = score; best = KB[i]; }
+  }
+  if (best && bestScore > 0) return best.a;
+
+  var words = q.split(/\s+/).filter(function(w){ return w.length > 4; });
+  for (i = 0; i < KB.length; i++) {
+    var allKeys = KB[i].k.join(' ');
+    for (j = 0; j < words.length; j++) {
+      if (allKeys.indexOf(words[j]) >= 0) return KB[i].a;
+    }
+  }
+
+  for (i = 0; i < GENERAL_KB.length; i++) {
+    score = 0;
+    for (j = 0; j < GENERAL_KB[i].k.length; j++) { if (q.indexOf(GENERAL_KB[i].k[j]) >= 0) score++; }
+    if (score > 0) return GENERAL_KB[i].b + '<br><br><strong>How this connects to the course:</strong> ' + GENERAL_KB[i].c;
+  }
+
+  for (i = 0; i < GENERAL_KB.length; i++) {
+    var allKeys2 = GENERAL_KB[i].k.join(' ');
+    for (j = 0; j < words.length; j++) {
+      if (allKeys2.indexOf(words[j]) >= 0) return GENERAL_KB[i].b + '<br><br><strong>How this connects to the course:</strong> ' + GENERAL_KB[i].c;
+    }
+  }
+
+  var safe = query.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return 'Great question! I don\'t have a specific answer for <strong>&ldquo;' + safe + '&rdquo;</strong> in my current knowledge base yet.<br><br>'
+    + 'Try one of these:<br>'
+    + '&bull; Click any <strong>Quick Question</strong> in the sidebar<br>'
+    + '&bull; Ask: <em>&ldquo;What can AI NOT do?&rdquo;</em><br>'
+    + '&bull; Ask: <em>&ldquo;How do I choose an AI project?&rdquo;</em><br><br>'
+    + '<strong>Couldn\'t find what you needed?</strong> Share it with your AI Champion &mdash; they will help improve this tool for the whole team!';
+}
+
+function addMsg(role, html) {
+  var wrap = document.getElementById('messages');
+  var div = document.createElement('div');
+  div.className = 'msg ' + role;
+  var av = role === 'user' ? '<div class="avatar user-av">You</div>' : '<div class="avatar bot-av">AI</div>';
+  div.innerHTML = av + '<div class="bubble">' + html + '</div>';
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function showTyping() {
+  var wrap = document.getElementById('messages');
+  var div = document.createElement('div');
+  div.id = 'typing'; div.className = 'msg bot';
+  div.innerHTML = '<div class="avatar bot-av">AI</div><div class="bubble"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function removeTyping() { var el = document.getElementById('typing'); if (el) el.remove(); }
+
+function askQ(text) {
+  document.getElementById('user-input').value = text;
+  sendMessage();
+}
+
+function sendMessage() {
+  if (loading) return;
+  var input = document.getElementById('user-input');
+  var btn = document.getElementById('send-btn');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  loading = true;
+  btn.disabled = true;
+  addMsg('user', text.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+  showTyping();
+  setTimeout(function() {
+    removeTyping();
+    addMsg('bot', getAnswer(text));
+    loading = false;
+    btn.disabled = false;
+    input.focus();
+  }, 500 + Math.floor(Math.random() * 400));
+}
+
+var inp = document.getElementById('user-input');
+inp.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+inp.addEventListener('input', function() {
+  inp.style.height = 'auto';
+  inp.style.height = Math.min(inp.scrollHeight, 100) + 'px';
+});
+</script>
+</body>
+</html>
